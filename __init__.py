@@ -23,7 +23,7 @@ md_version = "1.0"
 md_name = "PX to REM Converter"
 md_description = "Convert pixels to rem units and vice versa"
 md_license = "MIT"
-md_url = "https://github.com/vmaerten/albert-plugin-python-px-to-rem"
+md_url = "https://github.com/vmaerten/albert-plugin-px-to-rem"
 md_authors = ["@vmaerten"]
 
 DEFAULT_BASE = 16
