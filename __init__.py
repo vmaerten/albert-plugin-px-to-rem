@@ -18,7 +18,7 @@ from albert import (
     makeThemeIcon,
 )
 
-md_iid = "5.0"
+md_iid = "4.0"
 md_version = "1.0"
 md_name = "PX to REM Converter"
 md_description = "Convert pixels to rem units and vice versa"

@@ -36,7 +36,7 @@ Trigger: `px `
 
 ## Requirements
 
-- Albert 33+
+- Albert v0.26+ (uses Python interface 4.0)
 - Python plugin enabled
 - [Task](https://taskfile.dev/) (for installation)
 
