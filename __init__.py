@@ -8,17 +8,19 @@ Usage:
 """
 
 import re
+from pathlib import Path
 from albert import (
     Action,
+    Icon,
     PluginInstance,
     StandardItem,
-    TriggerQueryHandler,
-    Query,
+    GeneratorQueryHandler,
     setClipboardText,
-    makeThemeIcon,
 )
 
-md_iid = "4.0"
+PLUGIN_ICON = Path(__file__).parent / "icon.png"
+
+md_iid = "5.0"
 md_version = "1.0"
 md_name = "PX to REM Converter"
 md_description = "Convert pixels to rem units and vice versa"
@@ -29,10 +31,14 @@ md_authors = ["@vmaerten"]
 DEFAULT_BASE = 16
 
 
-class Plugin(PluginInstance, TriggerQueryHandler):
+class Plugin(PluginInstance, GeneratorQueryHandler):
     def __init__(self):
         PluginInstance.__init__(self)
-        TriggerQueryHandler.__init__(self)
+        GeneratorQueryHandler.__init__(self)
+
+    @staticmethod
+    def makeIcon():
+        return Icon.image(PLUGIN_ICON)
 
     def id(self):
         return "px-to-rem"
@@ -49,18 +55,16 @@ class Plugin(PluginInstance, TriggerQueryHandler):
     def synopsis(self, query):
         return "<value> [base]"
 
-    def handleTriggerQuery(self, query: Query):
-        query_str = query.string.strip()
+    def items(self, ctx):
+        query_str = ctx.query.strip()
 
         if not query_str:
-            query.add(
-                StandardItem(
-                    id="px-to-rem-help",
-                    text="PX ↔ REM Converter",
-                    subtext="Enter a value like '16' or '16px' or '1rem' [base]",
-                    icon_factory=lambda: makeThemeIcon("accessories-calculator"),
-                )
-            )
+            yield [StandardItem(
+                id="px-to-rem-help",
+                text="PX ↔ REM Converter",
+                subtext="Enter a value like '16' or '16px' or '1rem' [base]",
+                icon_factory=lambda: Icon.theme("accessories-calculator"),
+            )]
             return
 
         parts = query_str.split()
@@ -71,14 +75,12 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             try:
                 base = float(parts[1])
             except ValueError:
-                query.add(
-                    StandardItem(
-                        id="px-to-rem-error",
-                        text="Invalid base value",
-                        subtext=f"'{parts[1]}' is not a valid number",
-                        icon_factory=lambda: makeThemeIcon("dialog-error"),
-                    )
-                )
+                yield [StandardItem(
+                    id="px-to-rem-error",
+                    text="Invalid base value",
+                    subtext=f"'{parts[1]}' is not a valid number",
+                    icon_factory=lambda: Icon.theme("dialog-error"),
+                )]
                 return
 
         px_match = re.match(r"^([\d.]+)\s*px$", value_str, re.IGNORECASE)
@@ -90,58 +92,52 @@ class Plugin(PluginInstance, TriggerQueryHandler):
             result_px = value * base
             result_px_str = f"{result_px:.4g}px"
 
-            query.add(
-                StandardItem(
-                    id="px-to-rem-result",
-                    text=result_px_str,
-                    subtext=f"{value}rem → {result_px_str} (base: {base}px)",
-                    icon_factory=lambda: makeThemeIcon("accessories-calculator"),
-                    actions=[
-                        Action(
-                            id="copy",
-                            text="Copy to clipboard",
-                            callable=lambda r=result_px_str: setClipboardText(r),
-                        ),
-                        Action(
-                            id="copy_number",
-                            text="Copy number only",
-                            callable=lambda r=result_px: setClipboardText(f"{r:.4g}"),
-                        ),
-                    ],
-                )
-            )
+            yield [StandardItem(
+                id="px-to-rem-result",
+                text=result_px_str,
+                subtext=f"{value}rem → {result_px_str} (base: {base}px)",
+                icon_factory=lambda: Icon.theme("accessories-calculator"),
+                actions=[
+                    Action(
+                        id="copy",
+                        text="Copy to clipboard",
+                        callable=lambda r=result_px_str: setClipboardText(r),
+                    ),
+                    Action(
+                        id="copy_number",
+                        text="Copy number only",
+                        callable=lambda r=result_px: setClipboardText(f"{r:.4g}"),
+                    ),
+                ],
+            )]
         elif px_match or number_match:
             match = px_match or number_match
             value = float(match.group(1))
             result_rem = value / base
             result_rem_str = f"{result_rem:.4g}rem"
 
-            query.add(
-                StandardItem(
-                    id="px-to-rem-result",
-                    text=result_rem_str,
-                    subtext=f"{value}px → {result_rem_str} (base: {base}px)",
-                    icon_factory=lambda: makeThemeIcon("accessories-calculator"),
-                    actions=[
-                        Action(
-                            id="copy",
-                            text="Copy to clipboard",
-                            callable=lambda r=result_rem_str: setClipboardText(r),
-                        ),
-                        Action(
-                            id="copy_number",
-                            text="Copy number only",
-                            callable=lambda r=result_rem: setClipboardText(f"{r:.4g}"),
-                        ),
-                    ],
-                )
-            )
+            yield [StandardItem(
+                id="px-to-rem-result",
+                text=result_rem_str,
+                subtext=f"{value}px → {result_rem_str} (base: {base}px)",
+                icon_factory=lambda: Icon.theme("accessories-calculator"),
+                actions=[
+                    Action(
+                        id="copy",
+                        text="Copy to clipboard",
+                        callable=lambda r=result_rem_str: setClipboardText(r),
+                    ),
+                    Action(
+                        id="copy_number",
+                        text="Copy number only",
+                        callable=lambda r=result_rem: setClipboardText(f"{r:.4g}"),
+                    ),
+                ],
+            )]
         else:
-            query.add(
-                StandardItem(
-                    id="px-to-rem-invalid",
-                    text="Invalid input",
-                    subtext="Enter a number, '16px', or '1rem'",
-                    icon_factory=lambda: makeThemeIcon("dialog-error"),
-                )
-            )
+            yield [StandardItem(
+                id="px-to-rem-invalid",
+                text="Invalid input",
+                subtext="Enter a number, '16px', or '1rem'",
+                icon_factory=lambda: Icon.theme("dialog-error"),
+            )]
